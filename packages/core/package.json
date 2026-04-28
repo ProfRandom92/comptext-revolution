@@ -1,0 +1,13 @@
+{
+  "name": "@comptext/core",
+  "version": "0.1.0",
+  "description": "CompText DSL compiler, tokenizer and document model",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest"
+  },
+  "keywords": ["comptext", "dsl", "compression", "llm", "tokens"]
+}

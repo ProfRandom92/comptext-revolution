@@ -1,0 +1,16 @@
+{
+  "name": "@comptext/session-memory",
+  "version": "0.1.0",
+  "description": "Session state, resume snapshots and event log for long agent workflows",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.0.0"
+  },
+  "keywords": ["comptext", "session", "memory", "agent", "resume"]
+}

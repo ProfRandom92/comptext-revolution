@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "comptext-revolution": {
+      "command": "npx",
+      "args": ["@comptext/mcp-server"],
+      "description": "CompText Revolution — Universal Token Compression Platform"
+    }
+  }
+}

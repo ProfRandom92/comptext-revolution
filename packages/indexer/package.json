@@ -1,0 +1,19 @@
+{
+  "name": "@comptext/indexer",
+  "version": "0.1.0",
+  "description": "SQLite FTS5 context indexer with BM25 ranking",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "better-sqlite3": "^9.0.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.0.0"
+  },
+  "keywords": ["comptext", "indexer", "sqlite", "fts5", "bm25", "search"]
+}

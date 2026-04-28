@@ -1,0 +1,24 @@
+{
+  "name": "@comptext/mcp-server",
+  "version": "0.1.0",
+  "description": "MCP + REST server exposing all CompText tools",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "bin": {
+    "comptext-mcp": "./dist/bin.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "start": "node dist/index.js",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@comptext/core": "workspace:*",
+    "@comptext/indexer": "workspace:*",
+    "@comptext/session-memory": "workspace:*",
+    "@comptext/sandbox-runner": "workspace:*"
+  },
+  "keywords": ["comptext", "mcp", "rest", "server", "llm", "tools"]
+}

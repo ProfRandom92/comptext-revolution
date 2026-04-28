@@ -1,0 +1,13 @@
+{
+  "name": "@comptext/sandbox-runner",
+  "version": "0.1.0",
+  "description": "Isolated code and analysis execution — keeps raw data out of the prompt",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest"
+  },
+  "keywords": ["comptext", "sandbox", "execution", "runner", "agent"]
+}

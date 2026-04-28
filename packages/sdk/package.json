@@ -1,0 +1,19 @@
+{
+  "name": "@comptext/sdk",
+  "version": "0.1.0",
+  "description": "TypeScript SDK for the CompText Revolution platform",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "@comptext/core": "workspace:*",
+    "@comptext/indexer": "workspace:*",
+    "@comptext/session-memory": "workspace:*",
+    "@comptext/sandbox-runner": "workspace:*"
+  },
+  "keywords": ["comptext", "sdk", "typescript", "llm"]
+}
