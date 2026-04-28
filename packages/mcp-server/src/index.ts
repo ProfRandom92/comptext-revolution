@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 import * as cryptoLib from 'crypto'
+import * as readline from 'readline'
 
 const memory: Record<string, any> = {}
 
@@ -107,7 +108,6 @@ async function main() {
   process.stderr.write('[MCP] CompText Server (15 tools)\n')
   console.log(JSON.stringify({ jsonrpc: '2.0', id: 0, result: { tools } }))
 
-  const readline = require('readline')
   const rl = readline.createInterface({ input: process.stdin, terminal: false })
 
   rl.on('line', async (line: string) => {

@@ -1,10 +1,7 @@
-/**REST API Server für CompText — optional */
 import { compressText } from '@comptext/core'
+import * as http from 'http'
 
-// Quick HTTP server (no external deps)
-const http = require('http')
-
-const server = http.createServer(async (req: any, res: any) => {
+const server = http.createServer(async (req, res) => {
   res.setHeader('Content-Type', 'application/json')
   res.setHeader('Access-Control-Allow-Origin', '*')
 
@@ -16,7 +13,7 @@ const server = http.createServer(async (req: any, res: any) => {
 
   if (req.url === '/compress' && req.method === 'POST') {
     let body = ''
-    req.on('data', (chunk: string) => (body += chunk))
+    req.on('data', (chunk) => (body += chunk))
     req.on('end', () => {
       try {
         const { text, level } = JSON.parse(body)

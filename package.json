@@ -2,6 +2,7 @@
   "name": "comptext-revolution",
   "version": "0.1.0",
   "private": true,
+  "type": "module",
   "description": "CompText Revolution — Universal Token Compression Platform",
   "workspaces": [
     "packages/*",
@@ -12,7 +13,9 @@
     "dev": "pnpm -r dev",
     "test": "pnpm -r test",
     "lint": "pnpm -r lint",
-    "clean": "pnpm -r clean"
+    "clean": "pnpm -r clean",
+    "benchmark": "tsc benchmark/compression-benchmarks.ts --module esnext --target es2020 --esModuleInterop && node benchmark/compression-benchmarks.js",
+    "benchmark:perf": "tsc benchmark/performance-tests.ts --module esnext --target es2020 --esModuleInterop && node benchmark/performance-tests.js"
   },
   "engines": {
     "node": ">=18.0.0",
