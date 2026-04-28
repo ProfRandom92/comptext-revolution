@@ -42,3 +42,18 @@ export interface CompileResult {
   ratio: number
   durationMs: number
 }
+
+export interface CompressOptions {
+  level?: 1 | 2 | 3 | 4 | 5
+  profile?: 'minimal' | 'standard' | 'aggressive' | 'ultra'
+}
+
+export interface CompressResult {
+  original: string
+  compressed: string
+  originalLength: number
+  compressedLength: number
+  savedChars: number
+  ratio: string
+  level: number
+}

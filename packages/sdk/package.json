@@ -1,6 +1,7 @@
 {
   "name": "@comptext/sdk",
   "version": "0.1.0",
+  "type": "module",
   "description": "TypeScript SDK for the CompText Revolution platform",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

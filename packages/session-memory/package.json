@@ -1,6 +1,7 @@
 {
   "name": "@comptext/session-memory",
   "version": "0.1.0",
+  "type": "module",
   "description": "Session state, resume snapshots and event log for long agent workflows",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

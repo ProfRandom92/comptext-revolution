@@ -1,10 +1,7 @@
-import type { CompileOptions, CompileResult, CompTextDocument } from './types'
-import { tokenize } from './tokenizer'
+import type { CompileOptions, CompileResult, CompTextDocument, CompressOptions, CompressResult } from './types.js'
+import { tokenize } from './tokenizer.js'
+import { applyLevel1, applyLevel2, applyLevel3, applyLevel4, applyLevel5 } from './levels.js'
 
-/**
- * Main CompText compiler
- * Transforms plain text or structured input into CompText DSL
- */
 export function compile(input: string, options: CompileOptions = {}): CompileResult {
   const start = Date.now()
   const { level = 3, preserveStructure = true, format = 'compact' } = options
@@ -33,25 +30,49 @@ export function compile(input: string, options: CompileOptions = {}): CompileRes
   }
 }
 
-/** Decompress a CompText document back to readable form */
+export function compressText(text: string, options: CompressOptions = {}): CompressResult {
+  const { level = 2, profile = 'standard' } = options
+  const effectiveLevel = profileToLevel(profile, level)
+
+  const compressed = applyCompressionLevel(text, effectiveLevel)
+  const savedChars = text.length - compressed.length
+  const ratio = (compressed.length / text.length).toFixed(2)
+
+  return {
+    original: text,
+    compressed,
+    originalLength: text.length,
+    compressedLength: compressed.length,
+    savedChars,
+    ratio,
+    level: effectiveLevel,
+  }
+}
+
+function profileToLevel(profile: string, level: number): number {
+  if (profile === 'minimal') return 1
+  if (profile === 'standard') return level
+  if (profile === 'aggressive') return 3
+  if (profile === 'ultra') return 5
+  return level
+}
+
+function applyCompressionLevel(text: string, level: number): string {
+  if (level >= 5) return applyLevel5(text)
+  if (level >= 4) return applyLevel4(text)
+  if (level >= 3) return applyLevel3(text)
+  if (level >= 2) return applyLevel2(text)
+  return applyLevel1(text)
+}
+
 export function decompress(compressed: string): string {
-  // TODO: implement full decompression
   return compressed
 }
 
 function applyCompression(input: string, level: number, format: string): string {
-  // TODO: implement full CompText DSL compression
-  // Level 1: whitespace + stopword removal
-  // Level 2: + abbreviation substitution
-  // Level 3: + structural encoding
-  // Level 4: + semantic compression
-  // Level 5: + full DSL encoding
-  let result = input
-  if (level >= 1) result = result.replace(/\s+/g, ' ').trim()
-  return result
+  return applyCompressionLevel(input, level)
 }
 
 function estimateTokens(text: string): number {
-  // ~4 characters per token (rough GPT estimate)
   return Math.ceil(text.length / 4)
 }

@@ -1,6 +1,7 @@
 {
   "name": "@comptext/mcp-server",
   "version": "0.1.0",
+  "type": "module",
   "description": "MCP + REST server exposing all CompText tools",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",

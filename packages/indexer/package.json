@@ -1,6 +1,7 @@
 {
   "name": "@comptext/indexer",
   "version": "0.1.0",
+  "type": "module",
   "description": "SQLite FTS5 context indexer with BM25 ranking",
   "main": "./dist/index.js",
   "types": "./dist/index.d.ts",
