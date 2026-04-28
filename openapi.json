@@ -1,0 +1,240 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "CompText Revolution API",
+    "description": "Universal Token Compression Platform - MCP Server API",
+    "version": "0.1.0",
+    "contact": {
+      "name": "CompText Team",
+      "url": "https://github.com/ProfRandom92/comptext-revolution"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Development server"
+    },
+    {
+      "url": "https://comptext.example.com",
+      "description": "Production server"
+    }
+  ],
+  "paths": {
+    "/tools/list": {
+      "post": {
+        "summary": "List available MCP tools",
+        "operationId": "listTools",
+        "tags": ["Tools"],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "jsonrpc": { "type": "string", "enum": ["2.0"] },
+                  "id": { "type": "number" },
+                  "method": { "type": "string", "enum": ["tools/list"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "List of available tools",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jsonrpc": { "type": "string" },
+                    "id": { "type": "number" },
+                    "result": {
+                      "type": "object",
+                      "properties": {
+                        "tools": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "name": { "type": "string" },
+                              "description": { "type": "string" }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/tools/call": {
+      "post": {
+        "summary": "Call a specific MCP tool",
+        "operationId": "callTool",
+        "tags": ["Tools"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "required": ["jsonrpc", "id", "method", "params"],
+                "properties": {
+                  "jsonrpc": { "type": "string", "enum": ["2.0"] },
+                  "id": { "type": "number" },
+                  "method": { "type": "string", "enum": ["tools/call"] },
+                  "params": {
+                    "type": "object",
+                    "properties": {
+                      "name": {
+                        "type": "string",
+                        "enum": [
+                          "ct_compress",
+                          "ct_compress_batch",
+                          "ct_encode",
+                          "ct_parse",
+                          "ct_compress_output",
+                          "mem_remember",
+                          "mem_recall",
+                          "mem_list",
+                          "mem_delete",
+                          "ctx_index",
+                          "ctx_search",
+                          "ctx_checkpoint",
+                          "cas_store",
+                          "cas_fetch",
+                          "ct_token_stats"
+                        ]
+                      },
+                      "arguments": { "type": "object" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tool execution result",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jsonrpc": { "type": "string" },
+                    "id": { "type": "number" },
+                    "result": { "type": "object" }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "jsonrpc": { "type": "string" },
+                    "id": { "type": "number" },
+                    "error": {
+                      "type": "object",
+                      "properties": {
+                        "code": { "type": "number" },
+                        "message": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CompressionResult": {
+        "type": "object",
+        "properties": {
+          "compressed": { "type": "string" },
+          "ratio": { "type": "string" },
+          "tokensSaved": { "type": "number" },
+          "originalTokens": { "type": "number" },
+          "compressedTokens": { "type": "number" }
+        }
+      },
+      "MemoryLocation": {
+        "type": "object",
+        "properties": {
+          "palace": { "type": "string" },
+          "wing": { "type": "string" },
+          "room": { "type": "string" },
+          "content": { "type": "string" }
+        },
+        "required": ["palace", "wing", "room", "content"]
+      },
+      "Snapshot": {
+        "type": "object",
+        "properties": {
+          "id": { "type": "string" },
+          "sessionId": { "type": "string" },
+          "state": { "type": "object" },
+          "label": { "type": "string" },
+          "timestamp": { "type": "string", "format": "date-time" }
+        }
+      },
+      "TokenStats": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string" },
+          "totalOperations": { "type": "number" },
+          "totalTokensSaved": { "type": "number" },
+          "averageSavingsPerOp": { "type": "string" },
+          "systemMetrics": {
+            "type": "object",
+            "properties": {
+              "memoriesStored": { "type": "number" },
+              "documentsIndexed": { "type": "number" },
+              "checkpointsSaved": { "type": "number" },
+              "contentStored": { "type": "number" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "tags": [
+    {
+      "name": "Tools",
+      "description": "MCP Tool operations"
+    },
+    {
+      "name": "Compression",
+      "description": "Text compression operations"
+    },
+    {
+      "name": "Memory",
+      "description": "Session memory operations"
+    },
+    {
+      "name": "Context",
+      "description": "Context management operations"
+    },
+    {
+      "name": "Storage",
+      "description": "Content-addressed storage operations"
+    }
+  ]
+}
