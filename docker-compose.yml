@@ -1,0 +1,31 @@
+version: '3.8'
+
+services:
+  comptext-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: comptext-revolution
+    ports:
+      - "3000:3000"
+    volumes:
+      - comptext-data:/data/sessions
+    environment:
+      NODE_ENV: production
+      COMPTEXT_DB_PATH: /data/sessions/comptext.db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "node", "-e", "console.log('ok')"]
+      interval: 30s
+      timeout: 3s
+      retries: 3
+      start_period: 5s
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  comptext-data:
+    driver: local
