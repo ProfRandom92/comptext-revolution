@@ -3,6 +3,15 @@ import { join } from 'path'
 import { homedir } from 'os'
 
 export function getDbPath(): string {
+  // Support separate storage device via environment variable
+  if (process.env.COMPTEXT_DB_PATH) {
+    return process.env.COMPTEXT_DB_PATH
+  }
+  // Fallback to secondary device if specified
+  if (process.env.COMPTEXT_STORAGE_DEVICE === 'secondary') {
+    return '/data/sessions/comptext.db'
+  }
+  // Default to home directory
   const homeDir = homedir()
   return join(homeDir, '.comptext', 'sessions.db')
 }

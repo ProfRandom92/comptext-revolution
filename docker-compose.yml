@@ -9,10 +9,17 @@ services:
     ports:
       - "3000:3000"
     volumes:
-      - comptext-data:/data/sessions
+      - comptext-sessions:/data/sessions
+      - comptext-index:/data/index
+      - comptext-cache:/data/cache
+      - comptext-logs:/data/logs
     environment:
       NODE_ENV: production
       COMPTEXT_DB_PATH: /data/sessions/comptext.db
+      COMPTEXT_INDEX_PATH: /data/index
+      COMPTEXT_CACHE_PATH: /data/cache
+      COMPTEXT_LOGS_PATH: /data/logs
+      COMPTEXT_STORAGE_DEVICE: secondary
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "node", "-e", "console.log('ok')"]
@@ -25,7 +32,30 @@ services:
       options:
         max-size: "10m"
         max-file: "3"
+        labels: "service=comptext-mcp"
 
 volumes:
-  comptext-data:
+  comptext-sessions:
     driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${COMPTEXT_SESSIONS_MOUNT:-/var/lib/comptext/sessions}
+  comptext-index:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${COMPTEXT_INDEX_MOUNT:-/var/lib/comptext/index}
+  comptext-cache:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${COMPTEXT_CACHE_MOUNT:-/var/lib/comptext/cache}
+  comptext-logs:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${COMPTEXT_LOGS_MOUNT:-/var/lib/comptext/logs}
