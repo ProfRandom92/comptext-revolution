@@ -2,6 +2,10 @@
 import * as cryptoLib from 'crypto'
 import * as readline from 'readline'
 import type { ToolName } from './tools.js'
+import { pythonBridge } from './python-bridge.js'
+
+// CT-Vault Python backend integration (Phase 2)
+let usePython = process.env.USE_PYTHON !== 'false'
 
 // === DATA STRUCTURES ===
 interface SessionMemory {
