@@ -14,17 +14,15 @@ class SafetyGate:
 
     def __init__(self):
         self.dangerous_patterns = {
-            # Injection attacks
-            r"(?:select|insert|update|delete|drop|union)\s+(?:from|into|values)",  # SQL injection
-            r"<script[^>]*>.*?</script>",  # XSS
-            r"{{.*?}}|{%.*?%}",  # Template injection
-            # Credential leaks
-            r"(?:password|api[_-]?key|secret|token)\s*[=:]\s*['\"]?[a-zA-Z0-9]{8,}",
-            r"bearer\s+[a-zA-Z0-9_-]+",  # JWT
+            "sql_injection": r"(?:select|insert|update|delete|drop|union)\s+(?:from|into|values)",
+            "xss": r"<script[^>]*>.*?</script>",
+            "template": r"{{.*?}}|{%.*?%}",
+            "credentials": r"(?:password|api[_-]?key|secret|token)\s*[=:]\s*['\"]?[a-zA-Z0-9]{8,}",
+            "jwt": r"bearer\s+[a-zA-Z0-9_-]+",
         }
         self.suspicious_patterns = {
-            r"\\x[0-9a-f]{2}",  # Hex escapes
-            r"eval\(|exec\(|system\(",  # Code execution
+            "hex_escape": r"\\x[0-9a-f]{2}",
+            "code_exec": r"eval\(|exec\(|system\(",
         }
 
     def check_output(self, text: str) -> Tuple[RiskLevel, List[str]]:
@@ -32,14 +30,14 @@ class SafetyGate:
         violations = []
 
         # Check dangerous patterns
-        for pattern in self.dangerous_patterns.values():
+        for name, pattern in self.dangerous_patterns.items():
             if re.search(pattern, text, re.IGNORECASE):
-                violations.append(f"Dangerous pattern detected: {pattern[:50]}")
+                violations.append(f"Dangerous pattern ({name})")
 
         # Check suspicious patterns
-        for pattern in self.suspicious_patterns.values():
+        for name, pattern in self.suspicious_patterns.items():
             if re.search(pattern, text):
-                violations.append(f"Suspicious pattern detected: {pattern[:50]}")
+                violations.append(f"Suspicious pattern ({name})")
 
         if violations:
             return (RiskLevel.BLOCK, violations)
