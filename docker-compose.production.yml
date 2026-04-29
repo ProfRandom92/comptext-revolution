@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  ct-vault-python:
+    build:
+      context: .
+      dockerfile: Dockerfile.python
+    container_name: ct-vault-python
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - LOG_LEVEL=info
+    volumes:
+      - ct-vault-storage:/home/vault/.comptext
+    restart: unless-stopped
+    networks:
+      - comptext-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  ct-vault-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: ct-vault-mcp
+    ports:
+      - "3000:3000"
+    environment:
+      - NODE_ENV=production
+      - USE_PYTHON=true
+      - CT_VAULT_API=http://ct-vault-python:8000
+      - CT_VAULT_PORT=8000
+      - LOG_LEVEL=info
+    depends_on:
+      ct-vault-python:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - comptext-network
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('net').createConnection({port:3000}, () => process.exit(0)).on('error', () => process.exit(1))"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 5s
+
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - prometheus-data:/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+    networks:
+      - comptext-network
+    restart: unless-stopped
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+    volumes:
+      - grafana-storage:/var/lib/grafana
+      - ./grafana/dashboards:/etc/grafana/provisioning/dashboards
+      - ./grafana/datasources:/etc/grafana/provisioning/datasources
+    depends_on:
+      - prometheus
+    networks:
+      - comptext-network
+    restart: unless-stopped
+
+volumes:
+  ct-vault-storage:
+    driver: local
+  prometheus-data:
+    driver: local
+  grafana-storage:
+    driver: local
+
+networks:
+  comptext-network:
+    driver: bridge

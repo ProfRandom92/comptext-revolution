@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ct-vault-pvc
+  namespace: comptext
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: fast-ssd
+  resources:
+    requests:
+      storage: 50Gi
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: ct-vault-config
+  namespace: comptext
+data:
+  log_level: "info"
+  max_workers: "4"
+  cache_ttl: "3600"

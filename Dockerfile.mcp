@@ -1,0 +1,38 @@
+# TypeScript MCP Server Dockerfile
+FROM node:20-alpine as builder
+
+WORKDIR /app
+COPY . .
+
+# Install dependencies
+RUN npm ci
+
+# Build TypeScript
+WORKDIR /app/packages/mcp-server
+RUN npm run build
+
+# Final stage
+FROM node:20-alpine
+
+WORKDIR /app
+
+# Copy built files and production dependencies
+COPY --from=builder /app/node_modules /app/node_modules
+COPY --from=builder /app/packages/mcp-server/dist /app/dist
+COPY --from=builder /app/packages/mcp-server/package.json /app/package.json
+
+# Create non-root user
+RUN addgroup -g 1000 mcp && \
+    adduser -u 1000 -G mcp -s /sbin/nologin -D mcp && \
+    mkdir -p /home/mcp && \
+    chown -R mcp:mcp /app /home/mcp
+
+USER mcp
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD node -e "require('net').createConnection({port:3000}, () => process.exit(0)).on('error', () => process.exit(1))" || exit 1
+
+EXPOSE 3000
+
+CMD ["node", "dist/bin.js"]
