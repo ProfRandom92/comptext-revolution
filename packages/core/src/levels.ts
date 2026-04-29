@@ -35,8 +35,8 @@ export function applyLevel2(text: string): string {
     result = result.replace(new RegExp(`\\b${escapeRegex(word)}\\b`, 'gi'), abbrev)
   })
 
-  // Clean up extra spaces
-  result = result.replace(/\s+/g, ' ').trim()
+  // Clean up extra spaces (preserve line breaks)
+  result = result.split('\n').map(l => l.replace(/\s+/g, ' ').trim()).filter(l => l).join('\n')
   return result
 }
 
@@ -44,9 +44,10 @@ export function applyLevel2(text: string): string {
 export function applyLevel3(text: string): string {
   let result = applyLevel2(text)
 
-  // Remove articles at word boundaries (only single word, not in context)
+  // Remove articles at word boundaries (preserve newlines)
   const articlePattern = Array.from(ARTICLES).join('|')
-  result = result.replace(new RegExp(`\\b(${articlePattern})\\b`, 'gi'), '').replace(/\s+/g, ' ')
+  result = result.replace(new RegExp(`\\b(${articlePattern})\\b`, 'gi'), '')
+  result = result.split('\n').map(l => l.replace(/[ \t]+/g, ' ').trim()).filter(l => l).join('\n')
 
   // Remove duplicate lines (semantic dedup)
   const lines = result.split('\n')

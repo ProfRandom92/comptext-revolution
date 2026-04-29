@@ -5,7 +5,7 @@ from typing import Dict, Optional, List
 from pathlib import Path
 import json
 
-LOCI_PATTERN = re.compile(r'\[\[([^:]+):([^:]+):([^:]+):?([^\]]*)\]\]')
+LOCI_PATTERN = re.compile(r'\[\[([^:\]]+):([^:\]]+):([^:\]]+):?([^\]]*)\]\]')
 
 class MemPalaceDB:
     """Hierarchical memory system with [[Palace:Wing:Room:Drawer]] syntax."""

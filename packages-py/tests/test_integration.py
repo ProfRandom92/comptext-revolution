@@ -46,13 +46,23 @@ async def test_memory_palace_workflow():
 async def test_compression_levels():
     """Test different compression levels."""
     kvtc = KVTCContextController()
-    text = "The quick brown fox jumps over the lazy dog in the forest."
-
+    # Use filler-rich prose that responds well to each level
+    text = (
+        "Please provide a detailed documentation of the function implementation "
+        "and configuration parameters. It is important to note that the database "
+        "connections should basically always be initialized before usage."
+    )
+    prev_chars = None
     for level in range(1, 6):
         result = kvtc.compress(text, level=level)
-        # Each level should achieve some compression
-        assert result.ratio <= 1.0
-        assert result.tokens_out <= result.tokens_in
+        assert result.tokens_out > 0
+        # Higher levels must produce fewer or equal characters than previous level
+        if prev_chars is not None:
+            assert len(result.compressed) <= prev_chars
+        prev_chars = len(result.compressed)
+    # Level 5 must reduce character count by at least 20%
+    final = kvtc.compress(text, level=5)
+    assert len(final.compressed) < len(text) * 0.8
 
 @pytest.mark.asyncio
 async def test_safety_validation():
