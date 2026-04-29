@@ -149,6 +149,35 @@ export class PythonBridge {
     return data.content
   }
 
+  async memList(palaceFilter?: string): Promise<{ items: any[]; count: number }> {
+    const url = palaceFilter
+      ? `${this.serverUrl}/mem/list?palace_filter=${encodeURIComponent(palaceFilter)}`
+      : `${this.serverUrl}/mem/list`
+    const res = await fetch(url)
+    if (!res.ok) throw new Error(`Python: ${res.statusText}`)
+    return (await res.json()) as { items: any[]; count: number }
+  }
+
+  async memDelete(palace: string, wing: string, room: string, drawer?: string): Promise<{ deleted: boolean }> {
+    const res = await fetch(`${this.serverUrl}/mem/delete`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ palace, wing, room, drawer })
+    })
+    if (!res.ok) throw new Error(`Python: ${res.statusText}`)
+    return (await res.json()) as { deleted: boolean }
+  }
+
+  async ctxCheckpoint(sessionId: string, label: string = 'checkpoint', includeMemory: boolean = true): Promise<any> {
+    const res = await fetch(`${this.serverUrl}/ctx/checkpoint`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ session_id: sessionId, label, include_memory: includeMemory })
+    })
+    if (!res.ok) throw new Error(`Python: ${res.statusText}`)
+    return await res.json()
+  }
+
   async health(): Promise<boolean> {
     try {
       const res = await fetch(`${this.serverUrl}/health`)

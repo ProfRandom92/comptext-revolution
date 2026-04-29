@@ -105,6 +105,27 @@ export async function executeTool(
         }
         break
 
+      case 'mem_list':
+        pythonResult = await pythonBridge.memList(input.palace)
+        break
+
+      case 'mem_delete':
+        pythonResult = await pythonBridge.memDelete(
+          input.palace || '',
+          input.wing || '',
+          input.room || '',
+          input.drawer
+        )
+        break
+
+      case 'ctx_checkpoint':
+        pythonResult = await pythonBridge.ctxCheckpoint(
+          input.sessionId || '',
+          input.label || 'checkpoint',
+          input.includeMemory !== false
+        )
+        break
+
       case 'cas_store':
         pythonResult = await pythonBridge.casStore(input.content || '')
         break

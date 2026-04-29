@@ -1,11 +1,12 @@
 """REST API Server — FastAPI + Uvicorn (from CT-Vault)"""
 
 import time
+import json
 import logging
+from pathlib import Path
 from typing import Optional
 
 from fastapi import FastAPI, HTTPException
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 
 from prometheus_fastapi_instrumentator import Instrumentator
@@ -51,7 +52,6 @@ ERROR_COUNTER = Counter(
     ['error_type'],
 )
 
-# Auto-instrument all FastAPI routes (excludes /health and /metrics)
 Instrumentator(
     should_group_status_codes=False,
     excluded_handlers=['/health', '/metrics', '/prometheus'],
@@ -91,6 +91,20 @@ class MemoryRequest(BaseModel):
     drawer: Optional[str] = None
     tags: str = ""
 
+class MemoryDeleteRequest(BaseModel):
+    palace: str
+    wing: str
+    room: str
+    drawer: Optional[str] = None
+
+class CasStoreRequest(BaseModel):
+    content: str
+
+class CheckpointRequest(BaseModel):
+    session_id: str
+    label: str = "checkpoint"
+    include_memory: bool = True
+
 # ============================================================================
 # Routes
 # ============================================================================
@@ -127,17 +141,13 @@ async def compress(req: CompressRequest):
     """Compress text using KVTC — tracks latency and token savings in Prometheus."""
     start = time.perf_counter()
     level_label = str(req.level)
-
     try:
         result = kvtc.compress(req.text, req.level)
-
         duration = time.perf_counter() - start
         COMPRESSION_LATENCY.labels(method=f"level{req.level}").observe(duration)
         REQUEST_COUNTER.labels(endpoint="compress", status="success").inc()
-
         if hasattr(result, 'savings_pct') and result.savings_pct is not None:
             TOKEN_SAVINGS_RATE.labels(compression_level=level_label).set(result.savings_pct)
-
         return {
             "compressed": result.compressed,
             "tokens_in": result.tokens_in,
@@ -204,11 +214,47 @@ async def recall(query: str, top_k: int = 5):
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@app.get("/mem/list")
+async def mem_list(palace_filter: Optional[str] = None):
+    """List all memory locations."""
+    try:
+        items = await palace.list_all(palace_filter)
+        return {"items": items, "count": len(items)}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/mem/delete")
+async def mem_delete(req: MemoryDeleteRequest):
+    """Delete a memory item."""
+    try:
+        deleted = await palace.delete(req.palace, req.wing, req.room, req.drawer)
+        return {"deleted": deleted, "location": f"{req.palace}:{req.wing}:{req.room}"}
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/ctx/checkpoint")
+async def ctx_checkpoint(req: CheckpointRequest):
+    """Save a session checkpoint."""
+    checkpoint_dir = Path.home() / ".comptext" / "checkpoints"
+    checkpoint_dir.mkdir(parents=True, exist_ok=True)
+    cp = {
+        "session_id": req.session_id,
+        "label": req.label,
+        "ts": time.time(),
+        "memory": await palace.list_all() if req.include_memory else [],
+    }
+    cp_path = checkpoint_dir / f"{req.session_id}-{int(time.time())}.json"
+    cp_path.write_text(json.dumps(cp, indent=2))
+    return {"checkpoint_id": cp_path.stem, "path": str(cp_path), "items": len(cp["memory"])}
+
+
 @app.post("/cas/store")
-async def cas_store(content: str):
+async def cas_store(req: CasStoreRequest):
     """Store in content-addressed store."""
     try:
-        sha = await cas.store(content.encode())
+        sha = await cas.store(req.content.encode())
         return {"sha256": sha}
     except Exception as e:
         ERROR_COUNTER.labels(error_type="cas_store_failed").inc()

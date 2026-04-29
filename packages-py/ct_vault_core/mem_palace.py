@@ -112,6 +112,28 @@ class MemPalaceDB:
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
 
+    async def delete(self, palace: str, wing: str, room: str, drawer: str = None) -> bool:
+        """Delete a memory item. Returns True if found and deleted."""
+        try:
+            room_data = self.data[palace][wing][room]
+        except KeyError:
+            return False
+        if drawer:
+            if drawer not in room_data:
+                return False
+            del room_data[drawer]
+            if not room_data:
+                del self.data[palace][wing][room]
+        else:
+            del self.data[palace][wing][room]
+        # Prune empty containers
+        if not self.data[palace][wing]:
+            del self.data[palace][wing]
+        if not self.data[palace]:
+            del self.data[palace]
+        self._save()
+        return True
+
     async def list_palaces(self) -> List[str]:
         """List all palaces."""
         return list(self.data.keys())
@@ -119,3 +141,18 @@ class MemPalaceDB:
     async def get_palace(self, palace: str) -> Dict:
         """Get entire palace structure."""
         return self.data.get(palace, {})
+
+    async def list_all(self, palace_filter: str = None) -> List[Dict]:
+        """List all memory locations with metadata."""
+        items = []
+        palaces = {palace_filter: self.data[palace_filter]} if palace_filter and palace_filter in self.data else self.data
+        for p, wings in palaces.items():
+            for w, rooms in wings.items():
+                for r, drawers in rooms.items():
+                    for d, item in drawers.items():
+                        items.append({
+                            "palace": p, "wing": w, "room": r, "drawer": d,
+                            "snippet": item.get("content", "")[:100],
+                            "tags": item.get("tags", []),
+                        })
+        return items
