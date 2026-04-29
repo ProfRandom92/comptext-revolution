@@ -3,14 +3,13 @@
     "comptext-revolution": {
       "command": "node",
       "args": [
-        "packages/mcp-server/dist/index.js"
+        "C:/Users/contr/comptext-revolution/packages/mcp-server/dist/index.js"
       ],
       "env": {
         "USE_PYTHON": "true",
         "CT_VAULT_API": "http://localhost:8000",
         "CT_VAULT_PORT": "8000",
-        "NODE_ENV": "production",
-        "LOG_LEVEL": "info"
+        "NODE_ENV": "production"
       }
     }
   }
