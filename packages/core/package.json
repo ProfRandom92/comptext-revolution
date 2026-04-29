@@ -1,14 +1,45 @@
 {
   "name": "@comptext/core",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
-  "description": "CompText DSL compiler, tokenizer and document model",
-  "main": "./dist/index.js",
-  "types": "./dist/index.d.ts",
-  "scripts": {
-    "build": "tsc",
-    "dev": "tsc --watch",
-    "test": "vitest"
+  "description": "CompText compression engine — 22-75% LLM token savings",
+  "author": "ProfRandom92",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ProfRandom92/comptext-revolution"
   },
-  "keywords": ["comptext", "dsl", "compression", "llm", "tokens"]
+  "keywords": ["comptext", "dsl", "compression", "llm", "tokens", "mcp", "tiktoken"],
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs",
+      "types": "./dist/index.d.ts"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "dev": "tsup --watch",
+    "test": "vitest",
+    "prepublishOnly": "pnpm build"
+  },
+  "dependencies": {
+    "js-tiktoken": "^1.0.15"
+  },
+  "devDependencies": {
+    "tsup": "^8.0.0",
+    "typescript": "^5.9.3",
+    "vitest": "^1.0.0"
+  },
+  "peerDependencies": {
+    "typescript": ">=5.0.0"
+  }
 }

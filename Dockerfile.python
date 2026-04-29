@@ -1,31 +1,59 @@
-# CT-Vault Python Backend Dockerfile
-FROM python:3.11-slim as builder
+# Dockerfile.python — CT-Vault Python Backend
+# Multi-stage build: python:3.11-slim, non-root user, health check
+
+# ============================================================================
+# Stage 1: Builder — install dependencies
+# ============================================================================
+FROM python:3.11-slim AS builder
+
+WORKDIR /build
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+COPY packages-py/pyproject.toml .
+
+RUN pip install --no-cache-dir --prefix=/install \
+    "fastapi>=0.110" \
+    "uvicorn>=0.29" \
+    "aiosqlite>=0.19" \
+    "pydantic>=2.0" \
+    "typer>=0.12" \
+    "watchdog>=3.0" \
+    "mcp>=1.0" \
+    "tiktoken>=0.7" \
+    "httpx>=0.27" \
+    "prometheus-fastapi-instrumentator>=6.1.0" \
+    "prometheus-client>=0.20.0"
+
+# ============================================================================
+# Stage 2: Production image
+# ============================================================================
+FROM python:3.11-slim AS production
+
+# Non-root user for production security
+RUN groupadd -r comptext && useradd -r -g comptext -d /app -s /sbin/nologin comptext
 
 WORKDIR /app
-COPY packages-py/ .
 
-# Install dependencies
-RUN pip install --no-cache-dir -e .
+COPY --from=builder /install /usr/local
 
-# Final stage
-FROM python:3.11-slim
+COPY --chown=comptext:comptext packages-py/ct_vault_core ./ct_vault_core
+COPY --chown=comptext:comptext packages-py/pyproject.toml .
 
-WORKDIR /app
-COPY --from=builder /app /app
-COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
-COPY --from=builder /usr/local/bin /usr/local/bin
+RUN mkdir -p /data && chown comptext:comptext /data
 
-# Create non-root user
-RUN useradd -m -u 1000 vault && \
-    mkdir -p /home/vault/.comptext && \
-    chown -R vault:vault /app /home/vault
+USER comptext
 
-USER vault
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-    CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')" || exit 1
+ENV PYTHONUNBUFFERED=1
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV COMPTEXT_DB_PATH=/data/comptext.db
+ENV PORT=8000
 
 EXPOSE 8000
 
-CMD ["python", "-m", "uvicorn", "ct_vault_core.rest_api:app", "--host", "0.0.0.0", "--port", "8000"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=10s --retries=3 \
+  CMD python -c "import urllib.request; urllib.request.urlopen('http://localhost:8000/health').read()" || exit 1
+
+CMD ["uvicorn", "ct_vault_core.rest_api:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "1"]
