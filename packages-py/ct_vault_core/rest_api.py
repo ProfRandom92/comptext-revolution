@@ -66,6 +66,9 @@ cas = ContentAddressedStore()
 palace = MemPalaceDB()
 safety = SafetyGate()
 
+# Running stats (in-memory, reset on restart)
+_stats: dict = {"total_ops": 0, "total_tokens_in": 0, "total_tokens_out": 0, "ops_by_level": {}}
+
 # ============================================================================
 # Request Models
 # ============================================================================
@@ -104,6 +107,17 @@ class CheckpointRequest(BaseModel):
     session_id: str
     label: str = "checkpoint"
     include_memory: bool = True
+
+class EncodeRequest(BaseModel):
+    text: str
+    include_metadata: bool = True
+
+class ParseRequest(BaseModel):
+    compressed: str
+
+class CompressOutputRequest(BaseModel):
+    output: str
+    max_tokens: int = 500
 
 # ============================================================================
 # Routes
@@ -148,6 +162,10 @@ async def compress(req: CompressRequest):
         REQUEST_COUNTER.labels(endpoint="compress", status="success").inc()
         if hasattr(result, 'savings_pct') and result.savings_pct is not None:
             TOKEN_SAVINGS_RATE.labels(compression_level=level_label).set(result.savings_pct)
+        _stats["total_ops"] += 1
+        _stats["total_tokens_in"] += result.tokens_in
+        _stats["total_tokens_out"] += result.tokens_out
+        _stats["ops_by_level"][str(req.level)] = _stats["ops_by_level"].get(str(req.level), 0) + 1
         return {
             "compressed": result.compressed,
             "tokens_in": result.tokens_in,
@@ -248,6 +266,127 @@ async def ctx_checkpoint(req: CheckpointRequest):
     cp_path = checkpoint_dir / f"{req.session_id}-{int(time.time())}.json"
     cp_path.write_text(json.dumps(cp, indent=2))
     return {"checkpoint_id": cp_path.stem, "path": str(cp_path), "items": len(cp["memory"])}
+
+
+@app.post("/encode")
+async def encode(req: EncodeRequest):
+    """Encode text into CompText DSL format with optional metadata header."""
+    try:
+        result = kvtc.compress(req.text, level=2)
+        dsl = f"[CT:v1:L2]\n{result.compressed}\n[/CT]"
+        if req.include_metadata:
+            meta = f"# ratio:{result.ratio:.3f} savings:{result.savings_pct}% tokens_in:{result.tokens_in} tokens_out:{result.tokens_out}"
+            dsl = meta + "\n" + dsl
+        _stats["total_ops"] += 1
+        _stats["total_tokens_in"] += result.tokens_in
+        _stats["total_tokens_out"] += result.tokens_out
+        REQUEST_COUNTER.labels(endpoint="encode", status="success").inc()
+        return {
+            "encoded": dsl,
+            "format": "comptext-dsl-v1",
+            "tokens_in": result.tokens_in,
+            "tokens_out": result.tokens_out,
+            "savings_pct": result.savings_pct,
+        }
+    except Exception as e:
+        ERROR_COUNTER.labels(error_type="encode_failed").inc()
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/parse")
+async def parse(req: ParseRequest):
+    """Parse CompText DSL string and return structured representation."""
+    try:
+        text = req.compressed.strip()
+        metadata: dict = {}
+        content = text
+
+        # Extract metadata comment
+        if text.startswith("# ratio:"):
+            lines = text.splitlines()
+            meta_line = lines[0]
+            for part in meta_line.lstrip("# ").split():
+                if ":" in part:
+                    k, v = part.split(":", 1)
+                    metadata[k] = v
+            content = "\n".join(lines[1:]).strip()
+
+        # Extract DSL block
+        import re
+        header_match = re.match(r'\[CT:([^\]]+)\]', content)
+        level, version = None, None
+        if header_match:
+            parts = header_match.group(1).split(":")
+            version = parts[0] if len(parts) > 0 else "v1"
+            level = parts[1].lstrip("L") if len(parts) > 1 else "2"
+            content = re.sub(r'^\[CT:[^\]]+\]\n?', '', content)
+            content = re.sub(r'\n?\[/CT\]$', '', content).strip()
+
+        REQUEST_COUNTER.labels(endpoint="parse", status="success").inc()
+        return {
+            "content": content,
+            "format": "comptext-dsl-v1",
+            "version": version or "v1",
+            "level": int(level) if level and level.isdigit() else 2,
+            "metadata": metadata,
+            "is_dsl": header_match is not None,
+        }
+    except Exception as e:
+        ERROR_COUNTER.labels(error_type="parse_failed").inc()
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post("/compress-output")
+async def compress_output(req: CompressOutputRequest):
+    """Compress output text to fit within a token budget (escalates levels 2→5)."""
+    try:
+        for level in range(2, 6):
+            result = kvtc.compress(req.output, level=level)
+            if result.tokens_out <= req.max_tokens:
+                _stats["total_ops"] += 1
+                _stats["total_tokens_in"] += result.tokens_in
+                _stats["total_tokens_out"] += result.tokens_out
+                REQUEST_COUNTER.labels(endpoint="compress_output", status="success").inc()
+                return {
+                    "compressed": result.compressed,
+                    "tokens_in": result.tokens_in,
+                    "tokens_out": result.tokens_out,
+                    "savings_pct": result.savings_pct,
+                    "level_used": level,
+                    "within_limit": True,
+                }
+        # Level 5 still over budget — return best effort
+        result = kvtc.compress(req.output, level=5)
+        REQUEST_COUNTER.labels(endpoint="compress_output", status="success").inc()
+        return {
+            "compressed": result.compressed,
+            "tokens_in": result.tokens_in,
+            "tokens_out": result.tokens_out,
+            "savings_pct": result.savings_pct,
+            "level_used": 5,
+            "within_limit": result.tokens_out <= req.max_tokens,
+        }
+    except Exception as e:
+        ERROR_COUNTER.labels(error_type="compress_output_failed").inc()
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.get("/token-stats")
+async def token_stats():
+    """Return live compression statistics."""
+    total_in = _stats["total_tokens_in"]
+    total_out = _stats["total_tokens_out"]
+    total_saved = total_in - total_out
+    avg_savings = round((total_saved / total_in * 100), 1) if total_in else 0.0
+    return {
+        "total_operations": _stats["total_ops"],
+        "total_tokens_in": total_in,
+        "total_tokens_out": total_out,
+        "total_tokens_saved": total_saved,
+        "avg_savings_pct": avg_savings,
+        "ops_by_level": _stats["ops_by_level"],
+        "status": "ready",
+    }
 
 
 @app.post("/cas/store")

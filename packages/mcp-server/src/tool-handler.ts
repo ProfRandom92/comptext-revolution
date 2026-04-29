@@ -66,6 +66,22 @@ export async function executeTool(
         pythonResult = await pythonBridge.compress(input.text || '', input.level || 2)
         break
 
+      case 'ct_encode':
+        pythonResult = await pythonBridge.encode(input.text || '', input.includeMetadata !== false)
+        break
+
+      case 'ct_parse':
+        pythonResult = await pythonBridge.parse(input.compressed || '')
+        break
+
+      case 'ct_compress_output':
+        pythonResult = await pythonBridge.compressOutput(input.output || '', input.maxTokens || 500)
+        break
+
+      case 'ct_token_stats':
+        pythonResult = await pythonBridge.tokenStats()
+        break
+
       case 'ct_compress_batch':
         pythonResult = {
           results: await Promise.all(

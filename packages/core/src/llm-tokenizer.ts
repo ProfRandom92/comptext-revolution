@@ -2,13 +2,13 @@
  * LLM-precise token counting via js-tiktoken (cl100k_base)
  * Pure JS — no WASM, works in Edge Runtimes (Cloudflare Workers, Vercel Edge)
  */
-import { get_encoding, type TiktokenEncoding } from 'js-tiktoken'
+import { getEncoding } from 'js-tiktoken'
 
-let _enc: ReturnType<typeof get_encoding> | null = null
+let _enc: ReturnType<typeof getEncoding> | null = null
 
-function getEncoder(): ReturnType<typeof get_encoding> {
+function getEncoder(): ReturnType<typeof getEncoding> {
   if (!_enc) {
-    _enc = get_encoding('cl100k_base' as TiktokenEncoding)
+    _enc = getEncoding('cl100k_base')
   }
   return _enc
 }

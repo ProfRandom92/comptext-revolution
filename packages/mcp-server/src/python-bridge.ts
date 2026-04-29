@@ -149,6 +149,42 @@ export class PythonBridge {
     return data.content
   }
 
+  async encode(text: string, includeMetadata: boolean = true): Promise<any> {
+    const res = await fetch(`${this.serverUrl}/encode`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ text, include_metadata: includeMetadata })
+    })
+    if (!res.ok) throw new Error(`Python: ${res.statusText}`)
+    return await res.json()
+  }
+
+  async parse(compressed: string): Promise<any> {
+    const res = await fetch(`${this.serverUrl}/parse`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ compressed })
+    })
+    if (!res.ok) throw new Error(`Python: ${res.statusText}`)
+    return await res.json()
+  }
+
+  async compressOutput(output: string, maxTokens: number = 500): Promise<any> {
+    const res = await fetch(`${this.serverUrl}/compress-output`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ output, max_tokens: maxTokens })
+    })
+    if (!res.ok) throw new Error(`Python: ${res.statusText}`)
+    return await res.json()
+  }
+
+  async tokenStats(): Promise<any> {
+    const res = await fetch(`${this.serverUrl}/token-stats`)
+    if (!res.ok) throw new Error(`Python: ${res.statusText}`)
+    return await res.json()
+  }
+
   async memList(palaceFilter?: string): Promise<{ items: any[]; count: number }> {
     const url = palaceFilter
       ? `${this.serverUrl}/mem/list?palace_filter=${encodeURIComponent(palaceFilter)}`

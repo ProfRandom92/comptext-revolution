@@ -65,9 +65,6 @@ function applyCompressionLevel(text: string, level: number): string {
   return applyLevel1(text)
 }
 
-export function decompress(compressed: string): string {
-  return compressed
-}
 
 function applyCompression(input: string, level: number, format: string): string {
   return applyCompressionLevel(input, level)
