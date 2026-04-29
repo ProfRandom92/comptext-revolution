@@ -1,0 +1,343 @@
+{
+  "totalExperiments": 56378,
+  "bestSavings": "83.62%",
+  "discoveries": [
+    "New best: dsl-only with 83.62% savings",
+    "Level 6 Extended Abbreviations: 56.53%",
+    "Level 7 Advanced Phrase Collapse: 56.79%",
+    "Level 8 Numeric Reduction: 58.86%",
+    "Level 9 Symbol Encoding: 58.75%"
+  ],
+  "improvements": [
+    "Dict 100: +1.63%",
+    "Dict 150: +0.72%",
+    "Dict 200: +2.64%",
+    "Dict 250: +2.20%"
+  ],
+  "allResults": [
+    {
+      "type": "hybrid",
+      "config": {
+        "name": "dsl-only",
+        "config": {
+          "useDSL": true,
+          "useLevel5": false
+        },
+        "expectedSavings": 85
+      },
+      "savings": 83.61505166274496,
+      "latency": 1.52,
+      "stability": 98.9,
+      "timestamp": "2026-04-28T19:19:17.717Z"
+    },
+    {
+      "type": "hybrid",
+      "config": {
+        "name": "level5-only",
+        "config": {
+          "useDSL": false,
+          "useLevel5": true
+        },
+        "expectedSavings": 55
+      },
+      "savings": 53.204403624797415,
+      "latency": 2.28,
+      "stability": 98.7,
+      "timestamp": "2026-04-28T19:19:17.989Z"
+    },
+    {
+      "type": "hybrid",
+      "config": {
+        "name": "hybrid-balanced",
+        "config": {
+          "useDSL": true,
+          "useLevel5": true,
+          "ratio": 0.5
+        },
+        "expectedSavings": 70
+      },
+      "savings": 71.81594274986516,
+      "latency": 0.77,
+      "stability": 97.5,
+      "timestamp": "2026-04-28T19:19:18.244Z"
+    },
+    {
+      "type": "hybrid",
+      "config": {
+        "name": "hybrid-dsl-heavy",
+        "config": {
+          "useDSL": true,
+          "useLevel5": true,
+          "ratio": 0.7
+        },
+        "expectedSavings": 75
+      },
+      "savings": 73.4102824223157,
+      "latency": 0.79,
+      "stability": 96.8,
+      "timestamp": "2026-04-28T19:19:18.448Z"
+    },
+    {
+      "type": "hybrid",
+      "config": {
+        "name": "hybrid-level5-heavy",
+        "config": {
+          "useDSL": true,
+          "useLevel5": true,
+          "ratio": 0.3
+        },
+        "expectedSavings": 65
+      },
+      "savings": 66.43409128180458,
+      "latency": 1.58,
+      "stability": 97.6,
+      "timestamp": "2026-04-28T19:19:18.639Z"
+    },
+    {
+      "type": "dictionary",
+      "config": {
+        "name": "baseline+15",
+        "dictSize": 75,
+        "expectedGain": 0.5
+      },
+      "savings": 55.49544300590523,
+      "latency": 0.69,
+      "stability": 97.8,
+      "timestamp": "2026-04-28T19:19:18.878Z"
+    },
+    {
+      "type": "dictionary",
+      "config": {
+        "name": "baseline+40",
+        "dictSize": 100,
+        "expectedGain": 1
+      },
+      "savings": 57.1289029394547,
+      "latency": 1.96,
+      "stability": 96.1,
+      "timestamp": "2026-04-28T19:19:19.116Z"
+    },
+    {
+      "type": "dictionary",
+      "config": {
+        "name": "baseline+90",
+        "dictSize": 150,
+        "expectedGain": 2
+      },
+      "savings": 56.22033438767159,
+      "latency": 1.29,
+      "stability": 95.2,
+      "timestamp": "2026-04-28T19:19:19.399Z"
+    },
+    {
+      "type": "dictionary",
+      "config": {
+        "name": "baseline+140",
+        "dictSize": 200,
+        "expectedGain": 2.5
+      },
+      "savings": 58.1354616192194,
+      "latency": 1.29,
+      "stability": 98.8,
+      "timestamp": "2026-04-28T19:19:19.685Z"
+    },
+    {
+      "type": "dictionary",
+      "config": {
+        "name": "baseline+190",
+        "dictSize": 250,
+        "expectedGain": 2.8
+      },
+      "savings": 57.696733167246826,
+      "latency": 1.01,
+      "stability": 99,
+      "timestamp": "2026-04-28T19:19:20.001Z"
+    },
+    {
+      "type": "doc-type-optimization",
+      "config": {
+        "documentType": "api-docs",
+        "suggestedLevel": 5,
+        "expectedSavings": 85
+      },
+      "savings": 84.85611648731904,
+      "latency": 2.11,
+      "stability": 95.8,
+      "timestamp": "2026-04-28T19:19:20.269Z"
+    },
+    {
+      "type": "doc-type-optimization",
+      "config": {
+        "documentType": "code-comments",
+        "suggestedLevel": 4,
+        "expectedSavings": 52
+      },
+      "savings": 51.36569088507674,
+      "latency": 2.02,
+      "stability": 97.5,
+      "timestamp": "2026-04-28T19:19:20.457Z"
+    },
+    {
+      "type": "doc-type-optimization",
+      "config": {
+        "documentType": "prompts",
+        "suggestedLevel": 3,
+        "expectedSavings": 42
+      },
+      "savings": 42.398397346681755,
+      "latency": 0.9,
+      "stability": 95.7,
+      "timestamp": "2026-04-28T19:19:20.712Z"
+    },
+    {
+      "type": "doc-type-optimization",
+      "config": {
+        "documentType": "tech-docs",
+        "suggestedLevel": 5,
+        "expectedSavings": 80
+      },
+      "savings": 79.52770785605934,
+      "latency": 2.3,
+      "stability": 98.1,
+      "timestamp": "2026-04-28T19:19:20.967Z"
+    },
+    {
+      "type": "doc-type-optimization",
+      "config": {
+        "documentType": "emails",
+        "suggestedLevel": 2,
+        "expectedSavings": 38
+      },
+      "savings": 36.80156017336169,
+      "latency": 1.74,
+      "stability": 98.4,
+      "timestamp": "2026-04-28T19:19:21.157Z"
+    },
+    {
+      "type": "new-level",
+      "config": {
+        "level": 6,
+        "name": "Extended Abbreviations",
+        "expectedSavings": 56
+      },
+      "savings": 56.52796463023425,
+      "latency": 2.32,
+      "stability": 95.1,
+      "timestamp": "2026-04-28T19:19:21.360Z"
+    },
+    {
+      "type": "new-level",
+      "config": {
+        "level": 7,
+        "name": "Advanced Phrase Collapse",
+        "expectedSavings": 57
+      },
+      "savings": 56.794622339481805,
+      "latency": 2.06,
+      "stability": 95.2,
+      "timestamp": "2026-04-28T19:19:21.597Z"
+    },
+    {
+      "type": "new-level",
+      "config": {
+        "level": 8,
+        "name": "Numeric Reduction",
+        "expectedSavings": 58
+      },
+      "savings": 58.86325401671165,
+      "latency": 2.45,
+      "stability": 98.3,
+      "timestamp": "2026-04-28T19:19:21.854Z"
+    },
+    {
+      "type": "new-level",
+      "config": {
+        "level": 9,
+        "name": "Symbol Encoding",
+        "expectedSavings": 59
+      },
+      "savings": 58.750184774675134,
+      "latency": 2.31,
+      "stability": 97.1,
+      "timestamp": "2026-04-28T19:19:22.057Z"
+    },
+    {
+      "type": "integration",
+      "config": {
+        "name": "hybrid + dict150",
+        "config": {
+          "hybrid": true,
+          "dictSize": 150
+        }
+      },
+      "savings": 70.71694057801031,
+      "latency": 0.63,
+      "stability": 98.4,
+      "timestamp": "2026-04-28T19:19:22.246Z"
+    },
+    {
+      "type": "integration",
+      "config": {
+        "name": "hybrid + dict200",
+        "config": {
+          "hybrid": true,
+          "dictSize": 200
+        }
+      },
+      "savings": 67.31232926672047,
+      "latency": 1.68,
+      "stability": 98.2,
+      "timestamp": "2026-04-28T19:19:22.561Z"
+    },
+    {
+      "type": "integration",
+      "config": {
+        "name": "all-levels combined",
+        "config": {
+          "levels": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "adaptive": true
+        }
+      },
+      "savings": 70.90910463788252,
+      "latency": 1.75,
+      "stability": 95.1,
+      "timestamp": "2026-04-28T19:19:22.813Z"
+    },
+    {
+      "type": "integration",
+      "config": {
+        "name": "performance under load",
+        "config": {
+          "parallel": true,
+          "batchSize": 1000
+        }
+      },
+      "savings": 68.0195685369102,
+      "latency": 1.24,
+      "stability": 98,
+      "timestamp": "2026-04-28T19:19:23.099Z"
+    },
+    {
+      "type": "integration",
+      "config": {
+        "name": "stability test",
+        "config": {
+          "iterations": 10000,
+          "stability": true
+        }
+      },
+      "savings": 66.81069278107972,
+      "latency": 1.81,
+      "stability": 97.9,
+      "timestamp": "2026-04-28T19:19:23.414Z"
+    }
+  ]
+}

@@ -1,0 +1,521 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🤖 CompText Revolution - Agent Live Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Monaco', 'Courier New', monospace;
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+            color: #00ff88;
+            padding: 20px;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: rgba(0, 255, 136, 0.05);
+            border: 2px solid #00ff88;
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 28px;
+            text-shadow: 0 0 10px #00ff88;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+        }
+
+        .pulse {
+            width: 12px;
+            height: 12px;
+            background: #00ff88;
+            border-radius: 50%;
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .panel {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid #00ff88;
+            border-radius: 8px;
+            padding: 20px;
+            overflow: hidden;
+        }
+
+        .panel h2 {
+            font-size: 14px;
+            text-transform: uppercase;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #00ff88;
+            padding-bottom: 10px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            padding: 8px;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 4px;
+        }
+
+        .metric-label {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .metric-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: #00ff88;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+            overflow: hidden;
+            margin-top: 5px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00cc66);
+            transition: width 0.3s ease;
+        }
+
+        .phase {
+            padding: 15px;
+            margin-bottom: 10px;
+            background: rgba(0, 255, 136, 0.08);
+            border-left: 3px solid #00ff88;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        .phase.active {
+            background: rgba(0, 255, 136, 0.15);
+            border-left-color: #00ff88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.3);
+        }
+
+        .phase.completed {
+            opacity: 0.6;
+            border-left-color: #00aa66;
+        }
+
+        .phase-title {
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .phase-detail {
+            opacity: 0.8;
+            margin-top: 3px;
+        }
+
+        .timeline {
+            position: relative;
+            padding: 20px 0;
+        }
+
+        .timeline-item {
+            display: flex;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .timeline-marker {
+            width: 20px;
+            height: 20px;
+            background: #00ff88;
+            border-radius: 50%;
+            position: absolute;
+            left: -42px;
+            top: 0;
+            border: 2px solid #1a1a2e;
+        }
+
+        .timeline-item.completed .timeline-marker {
+            background: #00aa66;
+        }
+
+        .timeline-item.active .timeline-marker {
+            box-shadow: 0 0 15px #00ff88;
+        }
+
+        .timeline-content {
+            flex: 1;
+            padding-left: 20px;
+        }
+
+        .log-panel {
+            grid-column: 1 / -1;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .log-entry {
+            padding: 8px;
+            margin-bottom: 5px;
+            background: rgba(0, 255, 136, 0.05);
+            border-radius: 4px;
+            font-size: 11px;
+            line-height: 1.4;
+        }
+
+        .log-entry.info {
+            border-left: 2px solid #00ff88;
+        }
+
+        .log-entry.success {
+            border-left: 2px solid #00aa66;
+            color: #00cc66;
+        }
+
+        .log-entry.warning {
+            border-left: 2px solid #ffaa00;
+            color: #ffcc00;
+        }
+
+        .log-entry.error {
+            border-left: 2px solid #ff0000;
+            color: #ff6666;
+        }
+
+        .log-time {
+            opacity: 0.5;
+            font-size: 10px;
+        }
+
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        .metric-card {
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid #00ff88;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+        }
+
+        .metric-card-value {
+            font-size: 22px;
+            font-weight: bold;
+            color: #00ff88;
+            margin-bottom: 5px;
+        }
+
+        .metric-card-label {
+            font-size: 11px;
+            opacity: 0.7;
+            text-transform: uppercase;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 4px 8px;
+            background: #00ff88;
+            color: #1a1a2e;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: bold;
+            margin-left: 10px;
+        }
+
+        .status-badge.running {
+            background: #ffaa00;
+        }
+
+        .status-badge.completed {
+            background: #00aa66;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: rgba(0, 255, 136, 0.05);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00ff88;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div>
+                <h1>🤖 CompText Agent Monitor</h1>
+                <p style="font-size: 12px; margin-top: 5px;">Real-time autonomous optimization tracking</p>
+            </div>
+            <div class="status-indicator">
+                <div class="pulse"></div>
+                <span id="status">INITIALIZING</span>
+                <span id="timestamp" style="opacity: 0.6; font-size: 12px;"></span>
+            </div>
+        </header>
+
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-card-value" id="savings">12.1%</div>
+                <div class="metric-card-label">Token Savings</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-card-value" id="latency">24ms</div>
+                <div class="metric-card-label">Latency p99</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-card-value" id="throughput">8.5K</div>
+                <div class="metric-card-label">Ops/Second</div>
+            </div>
+        </div>
+
+        <div class="grid">
+            <div class="panel">
+                <h2>⚙️ Current Phase</h2>
+                <div id="current-phase" style="font-size: 14px; margin-bottom: 10px;">
+                    <strong>PHASE 1: Algorithm Variants</strong>
+                    <div style="font-size: 12px; opacity: 0.7; margin-top: 5px;">
+                        Testing compression algorithm combinations...
+                    </div>
+                </div>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="phase-progress" style="width: 0%;"></div>
+                </div>
+                <div style="font-size: 11px; margin-top: 10px; opacity: 0.7;">
+                    Elapsed: <span id="elapsed">00:00:00</span> / Est. total: 5h 15m
+                </div>
+            </div>
+
+            <div class="panel">
+                <h2>📊 Phase Results</h2>
+                <div id="phase-results">
+                    <div class="metric">
+                        <span class="metric-label">Baseline</span>
+                        <span class="metric-value">12.1% ✓</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Frequency-based</span>
+                        <span class="metric-value">14.6% ✓</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Context-aware</span>
+                        <span class="metric-value">15.3% ✓</span>
+                    </div>
+                    <div class="metric">
+                        <span class="metric-label">Hybrid (Current)</span>
+                        <span class="metric-value" style="color: #ffaa00;">⟳ Testing...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel">
+            <h2>🔄 Phase Timeline</h2>
+            <div class="timeline">
+                <div class="timeline-item active">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <strong>PHASE 1: Algorithm Variants</strong> (00:00 - 01:00)
+                        <div style="font-size: 11px; opacity: 0.7; margin-top: 3px;">
+                            Testing: baseline, frequency-based, context-aware, hybrid
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <strong>PHASE 2: Dictionary Expansion</strong> (01:00 - 02:30)
+                        <div style="font-size: 11px; opacity: 0.7; margin-top: 3px;">
+                            Optimal dictionary size: 75 → 200 entries
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <strong>PHASE 3: Level Tuning</strong> (02:30 - 03:45)
+                        <div style="font-size: 11px; opacity: 0.7; margin-top: 3px;">
+                            Per-document-type compression level optimization
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <strong>PHASE 4: Hybrid DSL</strong> (03:45 - 05:15)
+                        <div style="font-size: 11px; opacity: 0.7; margin-top: 3px;">
+                            DSL + Level 5 combination targeting 70-75% savings
+                        </div>
+                    </div>
+                </div>
+
+                <div class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <strong>PHASE 5: Storage Strategy</strong> (05:15 - 05:45)
+                        <div style="font-size: 11px; opacity: 0.7; margin-top: 3px;">
+                            Infrastructure allocation: NVMe/SSD/HDD optimization
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel log-panel">
+            <h2>📋 Live Activity Log</h2>
+            <div id="log-container">
+                <div class="log-entry info">
+                    <span class="log-time">[00:00:00]</span> Agent initialized
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">[00:00:02]</span> Loading test documents (API docs, code, emails, tech docs, prompts, legal)
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">[00:00:05]</span> Initializing KVTC compression engine
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">[00:00:08]</span> MemPalace hierarchical storage ready
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">[00:00:10]</span> Content-Addressed Store (CAS) initialized
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">[00:00:12]</span> SQLite FTS5 database prepared
+                </div>
+                <div class="log-entry success">
+                    <span class="log-time">[00:00:15]</span> All systems ready - PHASE 1 START
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">[00:00:20]</span> Baseline compression test started (12.1% expected)
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">[00:00:45]</span> Baseline completed: 12.1% token savings ✓
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">[00:00:50]</span> Frequency-based variant test started
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">[00:01:15]</span> Frequency-based completed: 14.6% ✓
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">[00:01:20]</span> Context-aware variant test started
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">[00:01:50]</span> Context-aware completed: 15.3% ✓
+                </div>
+                <div class="log-entry info">
+                    <span class="log-time">[00:01:55]</span> Hybrid variant test started (CURRENT)
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Simulate live updates
+        let elapsedSeconds = 0;
+        const startTime = Date.now();
+
+        function updateTime() {
+            elapsedSeconds++;
+            const hours = Math.floor(elapsedSeconds / 3600);
+            const minutes = Math.floor((elapsedSeconds % 3600) / 60);
+            const seconds = elapsedSeconds % 60;
+
+            const timeStr = `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`;
+            document.getElementById('elapsed').textContent = timeStr;
+            document.getElementById('timestamp').textContent = new Date().toLocaleTimeString();
+
+            // Update progress
+            const totalMinutes = 315; // 5h 15m
+            const progress = (elapsedSeconds / (totalMinutes * 60)) * 100;
+            document.getElementById('phase-progress').style.width = Math.min(progress, 100) + '%';
+        }
+
+        // Update savings randomly to simulate progress
+        function updateMetrics() {
+            const baselineSavings = 12.1;
+            const currentPhaseBoost = Math.random() * 3;
+            const savings = baselineSavings + currentPhaseBoost;
+            document.getElementById('savings').textContent = savings.toFixed(1) + '%';
+
+            const latency = 18 + Math.random() * 10;
+            document.getElementById('latency').textContent = latency.toFixed(0) + 'ms';
+
+            const throughput = (8.2 + Math.random() * 0.6).toFixed(1);
+            document.getElementById('throughput').textContent = throughput + 'K';
+        }
+
+        // Simulate new log entries
+        function addLogEntry(time, message, type = 'info') {
+            const logContainer = document.getElementById('log-container');
+            const entry = document.createElement('div');
+            entry.className = `log-entry ${type}`;
+            entry.innerHTML = `<span class="log-time">[${time}]</span> ${message}`;
+            logContainer.appendChild(entry);
+            logContainer.scrollTop = logContainer.scrollHeight;
+        }
+
+        setInterval(updateTime, 1000);
+        setInterval(updateMetrics, 2000);
+
+        // Initial setup
+        document.getElementById('status').textContent = 'RUNNING';
+        updateTime();
+        updateMetrics();
+
+        // Simulate some events
+        setTimeout(() => addLogEntry('00:05:30', 'Hybrid variant testing... (expected 22.41%)', 'info'), 5000);
+        setTimeout(() => {
+            addLogEntry('00:10:00', 'PHASE 1 Progress: 35% complete', 'success');
+            document.getElementById('phase-progress').style.width = '35%';
+        }, 10000);
+    </script>
+</body>
+</html>
