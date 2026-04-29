@@ -1,0 +1,105 @@
+{
+  "timestamp": "2026-04-29T06:25:09.082Z",
+  "elapsed": "0h 20m 0s",
+  "remaining": "4h 39m 59s",
+  "progress": "6.7%",
+  "metrics": {
+    "experimentsRun": 3815,
+    "successfulVariants": 0,
+    "bestSavings": 83.08315038727376,
+    "bestLatency": null,
+    "discoveries": [
+      "New best: dsl-only with 83.08% savings",
+      "Level 6 Extended Abbreviations: 56.46%",
+      "Level 7 Advanced Phrase Collapse: 56.41%",
+      "Level 8 Numeric Reduction: 58.96%",
+      "Level 9 Symbol Encoding: 58.30%"
+    ],
+    "improvements": [
+      "Dict 100: +0.76%",
+      "Dict 150: +0.37%",
+      "Dict 200: +2.04%",
+      "Dict 250: +2.15%"
+    ]
+  },
+  "recentResults": [
+    {
+      "type": "integration",
+      "config": {
+        "name": "hybrid + dict150",
+        "config": {
+          "hybrid": true,
+          "dictSize": 150
+        }
+      },
+      "savings": 69.10723723143094,
+      "latency": 2.13,
+      "stability": 98.9,
+      "timestamp": "2026-04-29T06:05:13.667Z"
+    },
+    {
+      "type": "integration",
+      "config": {
+        "name": "hybrid + dict200",
+        "config": {
+          "hybrid": true,
+          "dictSize": 200
+        }
+      },
+      "savings": 73.00867026964475,
+      "latency": 1.11,
+      "stability": 95.2,
+      "timestamp": "2026-04-29T06:05:13.921Z"
+    },
+    {
+      "type": "integration",
+      "config": {
+        "name": "all-levels combined",
+        "config": {
+          "levels": [
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "adaptive": true
+        }
+      },
+      "savings": 72.25705575813592,
+      "latency": 1.14,
+      "stability": 96.8,
+      "timestamp": "2026-04-29T06:05:14.187Z"
+    },
+    {
+      "type": "integration",
+      "config": {
+        "name": "performance under load",
+        "config": {
+          "parallel": true,
+          "batchSize": 1000
+        }
+      },
+      "savings": 71.51415274086916,
+      "latency": 2.01,
+      "stability": 95.1,
+      "timestamp": "2026-04-29T06:05:14.408Z"
+    },
+    {
+      "type": "integration",
+      "config": {
+        "name": "stability test",
+        "config": {
+          "iterations": 10000,
+          "stability": true
+        }
+      },
+      "savings": 72.77525504860166,
+      "latency": 1.31,
+      "stability": 95.2,
+      "timestamp": "2026-04-29T06:05:14.693Z"
+    }
+  ]
+}
