@@ -43,7 +43,7 @@ async function testCt_compress_batch() {
   ]
 
   const result = await executeTool('ct_compress_batch', { texts, level: 2 }, async (input) => ({
-    results: input.texts.map((t: string) => ({
+    results: (input.texts || []).map((t: string) => ({
       original: t,
       compressed: '[CT:batch|item]',
       ratio: 0.4
@@ -270,7 +270,7 @@ async function testCas_store() {
 
   const result = await executeTool('cas_store', { content }, async (input) => ({
     sha256: 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6q7r8s9t0u1v2w3x4y5z6',
-    size_bytes: input.content.length,
+    size_bytes: (input.content || '').length,
     stored: true
   }))
 
