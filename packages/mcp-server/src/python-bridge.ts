@@ -3,9 +3,8 @@
  * Calls Python backend via subprocess or HTTP
  */
 
-import { spawn } from 'child_process'
+import { spawn, type ChildProcess } from 'child_process'
 import fetch from 'node-fetch'
-import type { spawn as SpawnType } from 'child_process'
 
 const PYTHON_REST_URL = process.env.CT_VAULT_API || 'http://localhost:8000'
 const PYTHON_PORT = parseInt(process.env.CT_VAULT_PORT || '8000')
@@ -42,7 +41,7 @@ interface MemoryResult {
 
 export class PythonBridge {
   private serverUrl: string
-  private serverProcess: SpawnType | null = null
+  private serverProcess: ChildProcess | null = null
 
   constructor(port: number = PYTHON_PORT) {
     this.serverUrl = `http://localhost:${port}`

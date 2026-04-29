@@ -12,7 +12,7 @@
 
 import { Command } from 'commander'
 
-const const program = new Command()
+const program = new Command()
 
 // Global session storage
 const sessions: Map<string, any> = new Map()

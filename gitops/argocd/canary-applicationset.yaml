@@ -1,0 +1,122 @@
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: comptext-canary-phase1
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - phase: "1"
+        name: ct-vault-python
+        weight: 10
+        duration: "5d"
+      - phase: "1"
+        name: ct-vault-mcp
+        weight: 10
+        duration: "5d"
+  template:
+    metadata:
+      name: "{{ name }}-canary-{{ phase }}"
+      labels:
+        phase: "{{ phase }}"
+        app: "{{ name }}"
+        canary: "true"
+    spec:
+      project: comptext-canary
+      source:
+        repoURL: https://github.com/comptext/comptext-revolution
+        targetRevision: main
+        path: k8s
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: comptext
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+      revisionHistoryLimit: 10
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: comptext-canary-phase2
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - phase: "2"
+        name: ct-vault-python
+        weight: 50
+        duration: "10d"
+      - phase: "2"
+        name: ct-vault-mcp
+        weight: 50
+        duration: "10d"
+  template:
+    metadata:
+      name: "{{ name }}-canary-{{ phase }}"
+      labels:
+        phase: "{{ phase }}"
+        app: "{{ name }}"
+        canary: "true"
+    spec:
+      project: comptext-canary
+      source:
+        repoURL: https://github.com/comptext/comptext-revolution
+        targetRevision: main
+        path: k8s
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: comptext
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+      revisionHistoryLimit: 10
+---
+apiVersion: argoproj.io/v1alpha1
+kind: ApplicationSet
+metadata:
+  name: comptext-canary-phase3
+  namespace: argocd
+spec:
+  generators:
+  - list:
+      elements:
+      - phase: "3"
+        name: ct-vault-python
+        weight: 100
+        duration: "7d"
+      - phase: "3"
+        name: ct-vault-mcp
+        weight: 100
+        duration: "7d"
+  template:
+    metadata:
+      name: "{{ name }}-canary-{{ phase }}"
+      labels:
+        phase: "{{ phase }}"
+        app: "{{ name }}"
+        canary: "true"
+    spec:
+      project: comptext-canary
+      source:
+        repoURL: https://github.com/comptext/comptext-revolution
+        targetRevision: main
+        path: k8s
+      destination:
+        server: https://kubernetes.default.svc
+        namespace: comptext
+      syncPolicy:
+        automated:
+          prune: false
+          selfHeal: true
+        syncOptions:
+        - CreateNamespace=true
+      revisionHistoryLimit: 10

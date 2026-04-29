@@ -1,9 +1,3 @@
-import type { IndexedDocument, IndexerOptions, SearchResult } from './types'
-
-/**
- * CompText Context Indexer
- * Stores documents in SQLite with FTS5 for fast BM25 retrieval
- */
 /**
  * CompText Context Indexer
  * Stores documents in SQLite with FTS5 for fast BM25 retrieval

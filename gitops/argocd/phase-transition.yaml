@@ -1,0 +1,151 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: phase-transition-rules
+  namespace: argocd
+data:
+  phase1-to-phase2.json: |
+    {
+      "phase": "1->2",
+      "trigger_conditions": [
+        "success_rate >= 99 for 24h",
+        "latency_p99 <= 500ms for 24h",
+        "token_savings >= 70 for 24h",
+        "error_rate <= 1 for 24h",
+        "pod_restarts == 0"
+      ],
+      "actions": [
+        "update canary maxWeight: 10 -> 30",
+        "update Prometheus scrape interval: 1m -> 2m",
+        "enable load testing (scripts/load-test.js)",
+        "increase alert notification frequency: hourly",
+        "create phase2-metrics-dashboard"
+      ],
+      "rollback_triggers": [
+        "success_rate < 99 for 5m",
+        "latency_p99 > 1000ms for 10m",
+        "token_savings < 60",
+        "pod OOMKilled or CrashLoop"
+      ]
+    }
+
+  phase2-to-phase3.json: |
+    {
+      "phase": "2->3",
+      "trigger_conditions": [
+        "all phase1 criteria maintained for 10 days",
+        "load_test_passed: 1000 RPS sustained",
+        "memory_variance < 10%",
+        "db_connection_pool never exhausted",
+        "zero critical errors in logs",
+        "performance_variance < 5%"
+      ],
+      "actions": [
+        "update canary maxWeight: 50 -> 100",
+        "update stepWeight: 10 -> 20 (faster rollout)",
+        "enable 48h rollback window tracking",
+        "create rollback snapshot",
+        "increase monitoring intensity: every 5m",
+        "enable PagerDuty escalation"
+      ],
+      "rollback_triggers": [
+        "any metric fails for 5m during days 16-18",
+        "success_rate < 99 at any time",
+        "latency_p99 > 500ms for 10m",
+        "unexpected pod restarts",
+        "database or network errors > 1%",
+        "token_savings < 70 for 15m"
+      ]
+    }
+
+  post-phase3.json: |
+    {
+      "phase": "3-complete",
+      "trigger_conditions": [
+        "7 days at 100% traffic without incident",
+        "all metrics stable for 7 days",
+        "48h rollback window expired"
+      ],
+      "actions": [
+        "remove Canary CRD (promote to stable)",
+        "archive all metrics to S3 (metrics-archive/phase3-final)",
+        "create final metrics report",
+        "schedule retrospective meeting",
+        "update runbooks based on observations",
+        "delete old Deployment (stable version)"
+      ]
+    }
+
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-sync-policy
+  namespace: argocd
+data:
+  auto-sync-rules.yaml: |
+    # Phase 1: Only sync every 6 hours (lower change frequency)
+    Phase1Interval: 6h
+    Phase1Prune: false
+    Phase1SelfHeal: true
+    
+    # Phase 2: More aggressive (every 3 hours, gather metrics)
+    Phase2Interval: 3h
+    Phase2Prune: false
+    Phase2SelfHeal: true
+    
+    # Phase 3: Most aggressive (every 1 hour, high validation)
+    Phase3Interval: 1h
+    Phase3Prune: true
+    Phase3SelfHeal: true
+
+  git-sync-triggers.yaml: |
+    # Trigger Phase 2 when:
+    # 1. Tag: v1.0.0-phase2 pushed to main
+    # 2. File: k8s/canary-orchestration.yaml changed (maxWeight: 10 -> 30)
+    # 3. ConfigMap: phase-transition-rules updated
+    
+    # Trigger Phase 3 when:
+    # 1. Tag: v1.0.0-phase3 pushed to main
+    # 2. Manual approval in ArgoCD UI
+    # 3. Automatic (if all Phase 2 criteria met for 10 days)
+
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: phase-progression-checker
+  namespace: argocd
+spec:
+  schedule: "*/15 * * * *"  # Every 15 minutes
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          serviceAccountName: argocd-controller
+          containers:
+          - name: phase-checker
+            image: bitnami/kubectl:latest
+            command:
+            - /bin/sh
+            - -c
+            - |
+              # Query Prometheus for phase 1 success criteria
+              PHASE=$(kubectl get configmap phase-transition-rules -n argocd -o jsonpath='{.data.current-phase}' 2>/dev/null || echo "1")
+              
+              if [ "$PHASE" = "1" ]; then
+                # Check all Phase 1 criteria
+                SUCCESS_RATE=$(curl -s http://prometheus:9090/api/v1/query?query='rate(http_requests_total{status="200"}[5m])/rate(http_requests_total[5m])' | jq '.data.result[0].value[1]')
+                
+                if (( $(echo "$SUCCESS_RATE >= 0.99" | bc -l) )); then
+                  echo "Phase 1 success rate criteria met: $SUCCESS_RATE"
+                  # Mark as ready for phase 2
+                  kubectl annotate configmap phase-transition-rules -n argocd phase1-ready="true" --overwrite
+                fi
+              fi
+              
+              if [ "$PHASE" = "2" ]; then
+                # Check Phase 2 completion criteria
+                echo "Phase 2 monitoring..."
+              fi
+          restartPolicy: OnFailure

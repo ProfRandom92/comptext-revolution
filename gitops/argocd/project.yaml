@@ -1,0 +1,29 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: comptext-canary
+  namespace: argocd
+spec:
+  description: Canary deployment project for CompText CT-Vault
+  sourceRepos:
+  - https://github.com/comptext/comptext-revolution
+  destinations:
+  - namespace: comptext
+    server: https://kubernetes.default.svc
+  - namespace: monitoring
+    server: https://kubernetes.default.svc
+  - namespace: argocd
+    server: https://kubernetes.default.svc
+  namespaceResourceBlacklist:
+  - group: ''
+    kind: ResourceQuota
+  - group: ''
+    kind: NetworkPolicy
+  clusterResourceWhitelist:
+  - group: '*'
+    kind: '*'
+  roles:
+  - name: canary-admin
+    policies:
+    - p, proj:comptext-canary:canary-admin, applications, *, comptext-canary/*, allow
+    - p, proj:comptext-canary:canary-admin, repositories, get, *, allow

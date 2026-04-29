@@ -1,0 +1,61 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: argocd-notifications-cm
+  namespace: argocd
+data:
+  template.canary-phase-start: |
+    message: |
+      {{if eq .app.metadata.labels.phase "1"}}
+        🚀 PHASE 1 INITIATED: CT-Vault Canary Deployment
+        🎯 Traffic Weight: 10%
+        ⏱️ Duration: 5 days ({{ .app.metadata.creationTimestamp }})
+        📊 Metrics Target: Success Rate >99%, Latency <500ms, Savings >70%
+      {{end}}
+      {{if eq .app.metadata.labels.phase "2"}}
+        📈 PHASE 2 PROGRESSIVE EXPANSION: CT-Vault Canary
+        🎯 Traffic Weight: 50%
+        ⏱️ Duration: 10 days
+        🔍 Comprehensive Testing & Validation
+      {{end}}
+      {{if eq .app.metadata.labels.phase "3"}}
+        ✅ PHASE 3 FULL ROLLOUT: CT-Vault Production
+        🎯 Traffic Weight: 100%
+        ⏱️ Duration: 7 days (48h Rollback Window)
+        🎪 Complete Production Validation
+      {{end}}
+    deliveryMethod: slack
+    oncePer: app.status.operationState.finishedAt
+    when: app.status.operationState.phase in ['Succeeded', 'Error']
+
+  trigger.on-sync-succeeded: |
+    - when: app.status.operationState.phase in ['Succeeded']
+      oncePer: app.status.operationState.finishedAt
+      send: [app-health, sync-operation-result]
+
+  trigger.on-sync-failed: |
+    - when: app.status.operationState.phase in ['Error', 'Failed']
+      send: [app-health, sync-operation-result]
+
+  service.slack: |
+    token: $slack-token
+
+  notificationTemplate.app-health: |
+    message: |
+      📊 CT-Vault Health Status
+      App: {{.app.metadata.name}}
+      Phase: {{.app.metadata.labels.phase}}
+      Status: {{.app.status.health.status}}
+      Sync: {{.app.status.sync.status}}
+    deliveryMethod: slack
+    when: app.status.health.status in ['Degraded', 'Unknown']
+
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: argocd-notifications-secret
+  namespace: argocd
+stringData:
+  slack-token: ${SLACK_WEBHOOK_URL}
+  pagerduty-token: ${PAGERDUTY_TOKEN}
