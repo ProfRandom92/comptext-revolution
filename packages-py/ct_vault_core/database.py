@@ -57,7 +57,7 @@ async def search_chunks(query: str, top_k: int = 5) -> List[dict]:
     async with aiosqlite.connect(DB_PATH) as db:
         sql = """
             SELECT c.id, c.source_uri, c.text,
-                   snippet(chunks_fts, 4, '>>', '<<', '...', 10) as snippet,
+                   snippet(chunks_fts, 1, '>>', '<<', '...', 10) as snippet,
                    bm25(chunks_fts) as score
             FROM chunks_fts
             JOIN chunks c ON chunks_fts.id = c.id

@@ -73,25 +73,41 @@ class MemPalaceDB:
         self._save()
         return key
 
-    async def recall(self, query: str, top_k: int = 5) -> List[Dict]:
-        """Search palace for matching content."""
+    async def recall(self, query: str, top_k: int = 5, palace_filter: str = None) -> List[Dict]:
+        """Search palace with keyword scoring (BM25-like)."""
         results = []
-        query_lower = query.lower()
+        query_words = set(query.lower().split())
 
-        for palace, wings in self.data.items():
+        palaces = {palace_filter: self.data[palace_filter]} if palace_filter and palace_filter in self.data else self.data
+
+        for palace, wings in palaces.items():
             for wing, rooms in wings.items():
                 for room, drawers in rooms.items():
                     for drawer, item in drawers.items():
                         content = item.get("content", "")
-                        if query_lower in content.lower():
-                            results.append({
-                                "palace": palace,
-                                "wing": wing,
-                                "room": room,
-                                "drawer": drawer,
-                                "snippet": content[:200],
-                                "score": 1.0 if query_lower == content.lower() else 0.5,
-                            })
+                        tags = " ".join(item.get("tags", []))
+                        haystack = (content + " " + tags + " " + palace + " " + wing + " " + room).lower()
+                        haystack_words = set(haystack.split())
+
+                        # Score: fraction of query words found in haystack
+                        matched = query_words & haystack_words
+                        if not matched:
+                            # fallback: substring check
+                            if any(w in haystack for w in query_words if len(w) > 3):
+                                matched = {w for w in query_words if w in haystack}
+                        if not matched:
+                            continue
+
+                        score = len(matched) / len(query_words)
+                        results.append({
+                            "palace": palace,
+                            "wing": wing,
+                            "room": room,
+                            "drawer": drawer,
+                            "snippet": content[:200],
+                            "score": round(score, 3),
+                            "matched_terms": list(matched),
+                        })
 
         results.sort(key=lambda x: x["score"], reverse=True)
         return results[:top_k]
